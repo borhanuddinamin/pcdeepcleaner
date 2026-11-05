@@ -1,16 +1,13 @@
 {
   "catalogueVersion": "1.0",
   "rules": [
-    {
-      "ruleId": "example-app-cache-001",
-      "ruleVersion": "1.0",
-      "applicationKey": "example-app",
-      "relativePath": "Cache",
-      "dataType": "ApplicationCache",
-      "cleanupAllowed": false,
-      "requiresApplicationClosed": true,
-      "minimumAgeDays": 7,
-      "description": "Example rule. Must be validated for the actual application."
-    }
+    { "ruleId": "orphan-reviewed", "ruleVersion": "1.0", "applicationKey": "generic", "target": "*", "scope": "Folder", "dataType": "OrphanedData", "category": "Leftovers", "cleanupAllowed": false, "requiresApplicationClosed": false, "processNames": [], "minimumAgeDays": 30, "rebuildCost": "Not rebuildable: restore from quarantine if needed.", "sensitiveWarning": "Leftovers can hold settings you still want.", "validationMethod": "Your approval plus fresh ownership and content checks." },
+    { "ruleId": "user-temp-stale", "ruleVersion": "1.0", "applicationKey": "generic", "target": "%TEMP%", "scope": "Children", "dataType": "TemporaryFiles", "category": "Temporary files", "cleanupAllowed": false, "requiresApplicationClosed": false, "processNames": [], "minimumAgeDays": 7, "rebuildCost": "Low.", "sensitiveWarning": "Running installers may use recent items, so only older items qualify.", "validationMethod": "Newest file in the item must be older than the minimum age." },
+    { "ruleId": "crash-dumps", "ruleVersion": "1.0", "applicationKey": "generic", "target": "%LOCALAPPDATA%\\CrashDumps", "scope": "Children", "dataType": "LogsAndCrashDumps", "category": "Logs and crash dumps", "cleanupAllowed": false, "requiresApplicationClosed": false, "processNames": [], "minimumAgeDays": 14, "rebuildCost": "None, but the dumps can't be recreated.", "sensitiveWarning": "Dumps can contain data from memory.", "validationMethod": "Minimum age." },
+    { "ruleId": "vscode-cache", "ruleVersion": "1.0", "applicationKey": "Visual Studio Code", "target": "%APPDATA%\\Code\\Cache", "scope": "Folder", "dataType": "ApplicationCache", "category": "Application cache", "cleanupAllowed": false, "requiresApplicationClosed": true, "processNames": ["Code"], "minimumAgeDays": 0, "rebuildCost": "Low: rebuilt when VS Code runs.", "sensitiveWarning": "None known.", "validationMethod": "VS Code must be closed." },
+    { "ruleId": "vscode-logs", "ruleVersion": "1.0", "applicationKey": "Visual Studio Code", "target": "%APPDATA%\\Code\\logs", "scope": "Folder", "dataType": "LogsAndCrashDumps", "category": "Logs and crash dumps", "cleanupAllowed": false, "requiresApplicationClosed": true, "processNames": ["Code"], "minimumAgeDays": 0, "rebuildCost": "None.", "sensitiveWarning": "None known.", "validationMethod": "VS Code must be closed." },
+    { "ruleId": "npm-cacache", "ruleVersion": "1.0", "applicationKey": "npm", "target": "%USERPROFILE%\\.npm\\_cacache", "scope": "Folder", "dataType": "PackageCache", "category": "Package caches", "cleanupAllowed": false, "requiresApplicationClosed": true, "processNames": ["node"], "minimumAgeDays": 0, "rebuildCost": "Medium: packages download again.", "sensitiveWarning": "Only this subfolder, never all of .npm.", "validationMethod": "Node must be closed." },
+    { "ruleId": "nuget-http-cache", "ruleVersion": "1.0", "applicationKey": "NuGet", "target": "%LOCALAPPDATA%\\NuGet\\v3-cache", "scope": "Folder", "dataType": "PackageCache", "category": "Package caches", "cleanupAllowed": false, "requiresApplicationClosed": true, "processNames": ["dotnet", "devenv"], "minimumAgeDays": 0, "rebuildCost": "Medium: package data downloads again.", "sensitiveWarning": "Only this subfolder, never all of .nuget.", "validationMethod": "dotnet and Visual Studio must be closed." },
+    { "ruleId": "gradle-caches", "ruleVersion": "1.0", "applicationKey": "Gradle", "target": "%USERPROFILE%\\.gradle\\caches", "scope": "Folder", "dataType": "BuildCache", "category": "Build caches", "cleanupAllowed": false, "requiresApplicationClosed": true, "processNames": ["java", "gradle"], "minimumAgeDays": 0, "rebuildCost": "High: builds download and compile again.", "sensitiveWarning": "Only this subfolder, never all of .gradle.", "validationMethod": "Java and Gradle must be closed." }
   ]
 }

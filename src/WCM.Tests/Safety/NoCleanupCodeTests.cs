@@ -3,19 +3,31 @@ using WCM.Tests.Fixtures;
 
 namespace WCM.Tests.Safety;
 
-// Foundation-phase guard. Narrow it to WCM.CleanupEngine when Phase 10 adds quarantine.
 public partial class NoCleanupCodeTests
 {
     [Fact]
-    public void Production_code_contains_no_file_mutation_or_registry_write_calls()
+    public void Only_FileOperations_may_move_or_delete_files_or_write_the_registry()
     {
         var src = Path.Combine(RepositoryRoot.Path, "src");
         var violations = Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories)
             .Where(IsProductionSource)
+            .Where(file => Path.GetFileName(file) != "FileOperations.cs")
             .Where(file => ForbiddenCall().IsMatch(File.ReadAllText(file)))
             .ToList();
 
         Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void FileOperations_never_overwrites_and_exists_once()
+    {
+        var src = Path.Combine(RepositoryRoot.Path, "src");
+        var file = Assert.Single(Directory.EnumerateFiles(src, "FileOperations.cs", SearchOption.AllDirectories), IsProductionSource);
+        var text = File.ReadAllText(file);
+
+        Assert.DoesNotContain("overwrite: true", text, StringComparison.Ordinal);
+        Assert.Contains(Path.Combine("WCM.CleanupEngine", "Quarantine"), file, StringComparison.Ordinal);
+        Assert.DoesNotMatch(RegistryWrite(), text);
     }
 
     [Theory]
@@ -33,4 +45,7 @@ public partial class NoCleanupCodeTests
 
     [GeneratedRegex(@"\b(File|Directory)\.(Delete|Move|Replace)\s*\(|\.(MoveTo|Delete)\s*\(|\b(SetValue|DeleteValue|DeleteSubKey\w*|CreateSubKey)\s*\(")]
     private static partial Regex ForbiddenCall();
+
+    [GeneratedRegex(@"\b(SetValue|DeleteValue|DeleteSubKey\w*|CreateSubKey)\s*\(")]
+    private static partial Regex RegistryWrite();
 }

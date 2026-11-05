@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\WCM.Application\WCM.Application.csproj" />
     <ProjectReference Include="..\WCM.Infrastructure\WCM.Infrastructure.csproj" />
+    <ProjectReference Include="..\WCM.CleanupEngine\WCM.CleanupEngine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\Rules\**\*" Link="Rules\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

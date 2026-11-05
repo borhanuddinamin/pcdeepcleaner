@@ -6,4 +6,7 @@
     <ProjectReference Include="..\WCM.Domain\WCM.Domain.csproj" />
     <ProjectReference Include="..\WCM.Application\WCM.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="WCM.Tests" />
+  </ItemGroup>
 </Project>

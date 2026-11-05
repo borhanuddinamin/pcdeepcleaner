@@ -11,7 +11,7 @@ public class ArchitectureTests
     [InlineData("WCM.Application", "WCM.Domain")]
     [InlineData("WCM.Infrastructure", "WCM.Application", "WCM.Domain")]
     [InlineData("WCM.CleanupEngine", "WCM.Application", "WCM.Domain")]
-    [InlineData("WCM.Desktop", "WCM.Application", "WCM.Infrastructure")]
+    [InlineData("WCM.Desktop", "WCM.Application", "WCM.CleanupEngine", "WCM.Infrastructure")]
     public void Project_references_follow_the_dependency_direction(string project, params string[] expected)
     {
         var actual = ProjectFile(project).Descendants("ProjectReference")
