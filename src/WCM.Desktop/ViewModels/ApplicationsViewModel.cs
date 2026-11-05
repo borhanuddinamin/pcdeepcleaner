@@ -1,6 +1,9 @@
+using System.ComponentModel;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.Input;
 using WCM.Application.DTOs;
 using WCM.Application.Interfaces;
+using WCM.Domain.Enums;
 
 namespace WCM.Desktop.ViewModels;
 
@@ -19,20 +22,21 @@ public sealed class LocationRowViewModel(LocationMapping mapping, Func<long, str
 
 public sealed class ApplicationsViewModel : PageViewModel
 {
+    public const string FilterAll = "All";
     private readonly IApplicationDiscoveryService _discovery;
     private readonly IApplicationRepository _applications;
     private readonly IOwnershipService _ownership;
-    private IReadOnlyList<ApplicationRecord> _items = [];
+    private List<ApplicationRecord> _all = [];
     private IReadOnlyList<LocationRowViewModel> _locations = [];
+    private ICollectionView _view = CollectionViewSource.GetDefaultView(new List<ApplicationRecord>());
     private ApplicationRecord? _selected;
-    private string _status = "Select Scan to list the applications on this PC. Scanning only reads information.";
+    private string _search = string.Empty;
+    private string _filter = FilterAll;
+    private int _count;
 
-    public ApplicationsViewModel(
-        IApplicationDiscoveryService discovery,
-        IApplicationRepository applications,
-        IOwnershipService ownership)
+    public ApplicationsViewModel(IApplicationDiscoveryService discovery, IApplicationRepository applications, IOwnershipService ownership)
+        : base("Applications", "\uE71D")
     {
-        Title = "Applications";
         _discovery = discovery;
         _applications = applications;
         _ownership = ownership;
@@ -40,16 +44,47 @@ public sealed class ApplicationsViewModel : PageViewModel
         MapCommand = new AsyncRelayCommand(MapAsync);
     }
 
-    public override string Title { get; }
+    public IReadOnlyList<string> Filters { get; } =
+        [FilterAll, "Installed", "Potentially uninstalled", "Portable", "Unknown", "Needs review"];
 
     public IAsyncRelayCommand ScanCommand { get; }
 
     public IAsyncRelayCommand MapCommand { get; }
 
-    public IReadOnlyList<ApplicationRecord> Items
+    public ICollectionView Items
     {
-        get => _items;
-        private set => SetProperty(ref _items, value);
+        get => _view;
+        private set => SetProperty(ref _view, value);
+    }
+
+    public int VisibleCount
+    {
+        get => _count;
+        private set => SetProperty(ref _count, value);
+    }
+
+    public string Search
+    {
+        get => _search;
+        set
+        {
+            if (SetProperty(ref _search, value))
+            {
+                ApplyFilter();
+            }
+        }
+    }
+
+    public string Filter
+    {
+        get => _filter;
+        set
+        {
+            if (SetProperty(ref _filter, value))
+            {
+                ApplyFilter();
+            }
+        }
     }
 
     public IReadOnlyList<LocationRowViewModel> Locations
@@ -70,13 +105,38 @@ public sealed class ApplicationsViewModel : PageViewModel
         }
     }
 
-    public string Status
+    public override Task RefreshAsync() => RunAsync(string.Empty, LoadAsync);
+
+    public bool Matches(ApplicationRecord item)
     {
-        get => _status;
-        private set => SetProperty(ref _status, value);
+        var filterOk = _filter switch
+        {
+            "Installed" => item.Status == ApplicationStatus.Installed,
+            "Potentially uninstalled" => item.Status == ApplicationStatus.NotDetected,
+            "Portable" => item.Status == ApplicationStatus.Portable,
+            "Unknown" => item.Status == ApplicationStatus.Unverified,
+            "Needs review" => item.Status is ApplicationStatus.NeedsReview or ApplicationStatus.InstallPathMissing,
+            _ => true,
+        };
+        return filterOk && (_search.Length == 0
+            || item.Name.Contains(_search, StringComparison.OrdinalIgnoreCase)
+            || (item.Publisher?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
     }
 
-    public async Task LoadLocationsAsync()
+    private void ApplyFilter()
+    {
+        Items.Filter = item => Matches((ApplicationRecord)item);
+        VisibleCount = _all.Count(Matches);
+    }
+
+    private async Task LoadAsync()
+    {
+        _all = (await _applications.GetAllAsync(CancellationToken.None)).ToList();
+        Items = new ListCollectionView(_all);
+        ApplyFilter();
+    }
+
+    private async Task LoadLocationsAsync()
     {
         if (_selected is null)
         {
@@ -91,58 +151,39 @@ public sealed class ApplicationsViewModel : PageViewModel
         }
         catch (Exception ex)
         {
-            Status = $"Couldn't load this application's locations: {ex.Message}";
+            Problem = $"Couldn't load this application's locations: {ex.Message}";
         }
     }
 
-    private async Task DecideAsync(long mappingId, string decision)
+    private Task DecideAsync(long mappingId, string decision) => RunAsync("Saving...", async () =>
     {
-        try
-        {
-            await _ownership.SetDecisionAsync(mappingId, decision, CancellationToken.None);
-            Status = "Saved. Your decision doesn't remove the location's protection.";
-            await LoadLocationsAsync();
-        }
-        catch (Exception ex)
-        {
-            Status = $"Couldn't save your decision: {ex.Message}";
-        }
-    }
+        await _ownership.SetDecisionAsync(mappingId, decision, CancellationToken.None);
+        Status = "Saved. Your decision doesn't remove the location's protection.";
+        await LoadLocationsAsync();
+    });
 
-    private async Task MapAsync(CancellationToken cancellationToken)
+    private Task MapAsync(CancellationToken cancellationToken) => RunAsync("Mapping storage...", async () =>
     {
-        Status = "Mapping storage...";
-        try
-        {
-            var result = await _ownership.MapAsync(cancellationToken);
-            Status = result.WasSaved
-                ? $"Mapped {result.Locations:N0} locations: {result.SharedLocations:N0} shared and {result.UnknownLocations:N0} with an unknown owner. All stay protected."
-                : result.Problem ?? "Mapping didn't finish.";
-            await LoadLocationsAsync();
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            Status = $"Mapping failed: {ex.Message}";
-        }
-    }
+        var result = await _ownership.MapAsync(cancellationToken);
+        Status = result.WasSaved
+            ? $"Mapped {result.Locations:N0} locations: {result.SharedLocations:N0} shared and {result.UnknownLocations:N0} with an unknown owner. All stay protected."
+            : result.Problem ?? "Mapping didn't finish.";
+        await LoadLocationsAsync();
+    });
 
-    private async Task ScanAsync(CancellationToken cancellationToken)
+    private Task ScanAsync(CancellationToken cancellationToken) => RunAsync("Scanning...", async () =>
     {
-        Status = "Scanning...";
-        try
+        var result = await _discovery.DiscoverAsync(cancellationToken);
+        await LoadAsync();
+        Status = result switch
         {
-            var result = await _discovery.DiscoverAsync(cancellationToken);
-            Items = await _applications.GetAllAsync(cancellationToken);
-            Status = result switch
-            {
-                { WasSaved: false } => $"Scan failed, and the saved list wasn't changed. {string.Join(" ", result.Failures)}",
-                { IsComplete: false } => $"Found {result.ApplicationCount} applications, but the scan was incomplete. {string.Join(" ", result.Failures)}",
-                _ => $"Found {result.ApplicationCount} applications.",
-            };
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+            { WasSaved: false } => "Scan failed, and the saved list wasn't changed.",
+            { IsComplete: false } => $"Found {result.ApplicationCount} applications, but the scan was incomplete.",
+            _ => $"Found {result.ApplicationCount} applications.",
+        };
+        if (result.Failures.Count > 0)
         {
-            Status = $"Scan failed: {ex.Message}";
+            Problem = string.Join(" ", result.Failures);
         }
-    }
+    });
 }

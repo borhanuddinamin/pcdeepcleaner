@@ -1,0 +1,37 @@
+<UserControl x:Class="WCM.Desktop.Views.OrphansView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="Orphaned Data" Style="{StaticResource PageTitle}" />
+    <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="0,4,0,12" Text="Possible leftovers from applications that may be gone. A missing application is not proof, so nothing here is removed without your approval." />
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <Button Content="_Find leftovers" Command="{Binding DetectCommand}" Style="{StaticResource PrimaryButton}" />
+      <Button Content="_Approve" Command="{Binding ApproveCommand}" />
+      <Button Content="_Keep" Command="{Binding KeepCommand}" />
+      <Button Content="_Reset" Command="{Binding ResetCommand}" />
+      <Button Content="Pre_view approved" Command="{Binding SendCommand}" />
+      <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,8,0" AutomationProperties.Name="Search leftovers" />
+      <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" Width="170" AutomationProperties.Name="Filter leftovers" />
+    </WrapPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+      <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" Visibility="{Binding Status, Converter={StaticResource TextToVisible}}" />
+      <Border Style="{StaticResource Banner}" Margin="0,6,0,0" Visibility="{Binding Problem, Converter={StaticResource TextToVisible}}">
+        <TextBlock Text="{Binding Problem}" TextWrapping="Wrap" Foreground="{DynamicResource WarningTextBrush}" AutomationProperties.LiveSetting="Assertive" />
+      </Border>
+    </StackPanel>
+    <Grid>
+      <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" SelectionMode="Single" AutomationProperties.Name="Leftover candidates">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Application" Binding="{Binding ApplicationName}" Width="0.7*" />
+          <DataGridTextColumn Header="Folder" Binding="{Binding Path}" Width="3*" />
+          <DataGridTextColumn Header="Size" Binding="{Binding SizeBytes, Converter={StaticResource Bytes}}" Width="80" />
+          <DataGridTextColumn Header="Classification" Binding="{Binding Classification, Converter={StaticResource Humanize}}" Width="170" />
+          <DataGridTextColumn Header="Your decision" Binding="{Binding Decision, Converter={StaticResource Humanize}}" Width="100" />
+          <DataGridTextColumn Header="Last detected" Binding="{Binding LastDetectedAt, Converter={StaticResource LocalTime}}" Width="130" />
+          <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" />
+        </DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Text="No candidates. Run a full scan, then select Find leftovers." Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Visibility="{Binding Items.Count, Converter={StaticResource ZeroToVisible}}" />
+    </Grid>
+  </DockPanel>
+</UserControl>

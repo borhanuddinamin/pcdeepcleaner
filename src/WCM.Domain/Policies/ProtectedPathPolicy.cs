@@ -1,7 +1,7 @@
 namespace WCM.Domain.Policies;
 
 /// <summary>Locations and content that cleanup may never touch, whatever a rule or score says.</summary>
-public sealed class ProtectedPathPolicy(IReadOnlyList<string> protectedRoots, IReadOnlyList<string> protectedExactFolders, IReadOnlyList<string> userPaths)
+public sealed class ProtectedPathPolicy(IReadOnlyList<string> protectedRoots, IReadOnlyList<string> protectedExactFolders, IReadOnlyList<string> userPaths, Func<IReadOnlyList<string>>? currentUserPaths = null)
 {
     private static readonly HashSet<string> ProtectedSegments = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -22,7 +22,7 @@ public sealed class ProtectedPathPolicy(IReadOnlyList<string> protectedRoots, IR
     /// <returns>The reason the path is protected, or null.</returns>
     public string? Check(string path)
     {
-        foreach (var root in protectedRoots.Concat(userPaths))
+        foreach (var root in protectedRoots.Concat(userPaths).Concat(currentUserPaths?.Invoke() ?? []))
         {
             if (IsSameOrInside(path, root))
             {

@@ -8,7 +8,8 @@ WCM_Master_Plan.md section 14 defines each phase.
 - [x] Phase 3: Application discovery
 - [x] Phase 4: Storage scanning
 - [x] Phase 5: Mapping and ownership evidence
-- [ ] Phase 6 onward: not started
+- [x] Phases 6 to 11: see IMPLEMENTATION_STATUS.md
+- [ ] Phase 12: portable build verified; VM, elevation and offline runs are open (see the gap report)
 
 ## Phase 3 notes
 

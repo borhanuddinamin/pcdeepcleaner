@@ -1,6 +1,8 @@
+using System.IO;
 using CommunityToolkit.Mvvm.Input;
 using WCM.Application.DTOs;
 using WCM.Application.Interfaces;
+using WCM.Desktop.Converters;
 
 namespace WCM.Desktop.ViewModels;
 
@@ -8,28 +10,36 @@ public sealed class StorageViewModel : PageViewModel
 {
     private readonly IStorageScanner _scanner;
     private readonly IScanConfigurationStore _settings;
-    private string _status = "Select Scan storage to measure the configured folders. Scanning only reads file information.";
+    private readonly IDashboardQuery _query;
     private string _currentPath = string.Empty;
     private IReadOnlyList<string> _notScanned = [];
+    private IReadOnlyList<FolderRow> _folders = [];
+    private string? _parent;
+    private string _search = string.Empty;
+    private FolderRow? _selected;
 
-    public StorageViewModel(IStorageScanner scanner, IScanConfigurationStore settings)
-        : base("Storage Explorer")
+    public StorageViewModel(IStorageScanner scanner, IScanConfigurationStore settings, IDashboardQuery query)
+        : base("Storage Explorer", "\uE8B7")
     {
         _scanner = scanner;
         _settings = settings;
+        _query = query;
         ScanCommand = new AsyncRelayCommand(ScanAsync);
         CancelCommand = ScanCommand.CreateCancelCommand();
+        OpenCommand = new AsyncRelayCommand(OpenAsync);
+        UpCommand = new AsyncRelayCommand(UpAsync);
+        SearchCommand = new AsyncRelayCommand(LoadAsync);
     }
 
     public IAsyncRelayCommand ScanCommand { get; }
 
     public System.Windows.Input.ICommand CancelCommand { get; }
 
-    public string Status
-    {
-        get => _status;
-        private set => SetProperty(ref _status, value);
-    }
+    public IAsyncRelayCommand OpenCommand { get; }
+
+    public IAsyncRelayCommand UpCommand { get; }
+
+    public IAsyncRelayCommand SearchCommand { get; }
 
     public string CurrentPath
     {
@@ -37,15 +47,35 @@ public sealed class StorageViewModel : PageViewModel
         private set => SetProperty(ref _currentPath, value);
     }
 
+    public string Location => _parent ?? "Mapped locations";
+
     public IReadOnlyList<string> NotScanned
     {
         get => _notScanned;
         private set => SetProperty(ref _notScanned, value);
     }
 
+    public IReadOnlyList<FolderRow> Folders
+    {
+        get => _folders;
+        private set => SetProperty(ref _folders, value);
+    }
+
+    public string Search
+    {
+        get => _search;
+        set => SetProperty(ref _search, value);
+    }
+
+    public FolderRow? Selected
+    {
+        get => _selected;
+        set => SetProperty(ref _selected, value);
+    }
+
     public static string Summarize(ScanResult result)
     {
-        var counts = $"{result.Files:N0} files in {result.Folders:N0} folders, {FormatBytes(result.Bytes)}";
+        var counts = $"{result.Files:N0} files in {result.Folders:N0} folders, {BytesConverter.Format(result.Bytes)}";
         var skipped = $"{result.LinksSkipped:N0} links not followed.";
         return result.Status switch
         {
@@ -56,38 +86,50 @@ public sealed class StorageViewModel : PageViewModel
         };
     }
 
-    private static string FormatBytes(long bytes) => bytes >= 1L << 30
-        ? $"{bytes / (double)(1L << 30):N1} GB"
-        : $"{bytes / (double)(1L << 20):N1} MB";
-
-    private async Task ScanAsync(CancellationToken cancellationToken)
+    public override Task RefreshAsync() => RunAsync(string.Empty, async () =>
     {
-        Status = "Scanning...";
-        try
-        {
-            var configuration = await _settings.LoadAsync(cancellationToken);
-            NotScanned =
-            [
-                .. configuration.Exclusions.Select(e => $"{e.Path}: {e.Reason}"),
-                .. configuration.Roots.Where(r => !r.Enabled).Select(r => $"{r.Path}: {r.Policy}"),
-            ];
-            var progress = new Progress<ScanProgress>(p =>
-            {
-                Status = $"Scanning: {p.Files:N0} files, {p.Folders:N0} folders, {FormatBytes(p.Bytes)}, {p.Errors:N0} unreadable";
-                CurrentPath = p.CurrentPath ?? string.Empty;
-            });
+        var configuration = await _settings.LoadAsync(CancellationToken.None);
+        NotScanned =
+        [
+            .. configuration.Exclusions.Select(e => $"{e.Path}: {e.Reason}"),
+            .. configuration.Roots.Where(r => !r.Enabled).Select(r => $"{r.Path}: {r.Policy}"),
+        ];
+        await LoadAsync();
+    });
 
-            var result = await _scanner.ScanAsync(configuration, progress, cancellationToken);
-            Status = Summarize(result);
-            CurrentPath = string.Empty;
-        }
-        catch (OperationCanceledException)
+    private async Task LoadAsync()
+    {
+        Folders = await Task.Run(() => _query.GetFoldersAsync(_parent, _search, CancellationToken.None));
+        OnPropertyChanged(nameof(Location));
+    }
+
+    private async Task OpenAsync()
+    {
+        if (Selected is { ItemType: ScanItemType.Folder } folder)
         {
-            Status = "Scan cancelled before it started.";
-        }
-        catch (Exception ex)
-        {
-            Status = $"Scan failed: {ex.Message}";
+            _parent = folder.Path;
+            Search = string.Empty;
+            await LoadAsync();
         }
     }
+
+    private async Task UpAsync()
+    {
+        _parent = _parent is null ? null : Path.GetDirectoryName(_parent);
+        await LoadAsync();
+    }
+
+    private Task ScanAsync(CancellationToken cancellationToken) => RunAsync("Scanning...", async () =>
+    {
+        var configuration = await _settings.LoadAsync(cancellationToken);
+        var progress = new Progress<ScanProgress>(p =>
+        {
+            Status = $"Scanning: {p.Files:N0} files, {p.Folders:N0} folders, {BytesConverter.Format(p.Bytes)}, {p.Errors:N0} unreadable";
+            CurrentPath = p.CurrentPath ?? string.Empty;
+        });
+        var result = await _scanner.ScanAsync(configuration, progress, cancellationToken);
+        Status = Summarize(result);
+        CurrentPath = string.Empty;
+        await LoadAsync();
+    });
 }

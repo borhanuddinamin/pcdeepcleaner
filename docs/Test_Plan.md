@@ -1,3 +1,3 @@
 # Test Plan
 
-Not written yet. WCM_Master_Plan.md is the authoritative specification until this document exists.
+See `WCM_Master_Plan.md` section 15. Safety tests are in `src/WCM.Tests/Safety` for the specification, and `IMPLEMENTATION_GAP_REPORT.md` for differences.

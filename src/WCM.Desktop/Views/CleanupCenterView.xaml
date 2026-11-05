@@ -1,0 +1,42 @@
+<UserControl x:Class="WCM.Desktop.Views.CleanupCenterView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="Cleanup Center" Style="{StaticResource PageTitle}" />
+    <TextBlock DockPanel.Dock="Top" Text="{Binding Summary}" Style="{StaticResource Muted}" Margin="0,4,0,12" />
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <Button Content="_Create preview" Command="{Binding PreviewCommand}" Style="{StaticResource PrimaryButton}" />
+      <CheckBox Content="I reviewed the paths below" IsChecked="{Binding UserAcknowledged}" Margin="4,0,12,0" />
+      <Button Content="_Approve plan" Command="{Binding ApproveCommand}" />
+      <Button Content="_Move to quarantine" Command="{Binding ExecuteCommand}" Style="{StaticResource DangerButton}" />
+      <Button Content="C_lear" Command="{Binding ClearCommand}" />
+    </WrapPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+      <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" Visibility="{Binding Status, Converter={StaticResource TextToVisible}}" />
+      <Border Style="{StaticResource Banner}" Margin="0,6,0,0" Visibility="{Binding Problem, Converter={StaticResource TextToVisible}}">
+        <TextBlock Text="{Binding Problem}" TextWrapping="Wrap" Foreground="{DynamicResource WarningTextBrush}" AutomationProperties.LiveSetting="Assertive" />
+      </Border>
+    </StackPanel>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8">
+        <Run Text="Selected for preview:" /> <Run Text="{Binding Selections.Count, Mode=OneWay}" />
+      </TextBlock>
+      <DataGrid Grid.Row="1" ItemsSource="{Binding Preview.Items}" AutomationProperties.Name="Preview">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*" />
+          <DataGridTextColumn Header="Source" Binding="{Binding SourceKind}" Width="70" />
+          <DataGridTextColumn Header="Rule" Binding="{Binding RuleId}" Width="120" />
+          <DataGridTextColumn Header="Items" Binding="{Binding ItemCount, StringFormat=N0}" Width="70" />
+          <DataGridTextColumn Header="Size" Binding="{Binding SizeBytes, Converter={StaticResource Bytes}}" Width="80" />
+          <DataGridTextColumn Header="Check" Binding="{Binding ValidationStatus, Converter={StaticResource Humanize}}" Width="70" />
+          <DataGridTextColumn Header="Why it is blocked" Binding="{Binding BlockReason}" Width="2*" />
+        </DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Grid.Row="1" Text="Nothing to preview yet. Choose items in Orphaned Data or Cache Analyzer." Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Visibility="{Binding Selections.Count, Converter={StaticResource ZeroToVisible}}" />
+    </Grid>
+  </DockPanel>
+</UserControl>

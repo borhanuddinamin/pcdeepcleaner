@@ -1,0 +1,42 @@
+<UserControl x:Class="WCM.Desktop.Views.QuarantineView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="Quarantine &amp; Restore" Style="{StaticResource PageTitle}" />
+    <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="0,4,0,12" Text="Items here can be restored. On the same drive they still use disk space until you delete them permanently." />
+    <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <Button Content="_Restore" Command="{Binding RestoreCommand}" Style="{StaticResource PrimaryButton}" />
+      <Button Content="Restore _beside existing" Command="{Binding RestoreBesideCommand}" ToolTip="If the original path is taken, restores under a new name. Nothing is overwritten." />
+      <Button Content="Check _interrupted" Command="{Binding RecoverCommand}" />
+      <Button Content="_Delete permanently" Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" />
+    </WrapPanel>
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+      <TextBlock Text="{Binding Status}" Style="{StaticResource Muted}" AutomationProperties.LiveSetting="Polite" Visibility="{Binding Status, Converter={StaticResource TextToVisible}}" />
+      <Border Style="{StaticResource Banner}" Margin="0,6,0,0" Visibility="{Binding Problem, Converter={StaticResource TextToVisible}}">
+        <TextBlock Text="{Binding Problem}" TextWrapping="Wrap" Foreground="{DynamicResource WarningTextBrush}" AutomationProperties.LiveSetting="Assertive" />
+      </Border>
+    </StackPanel>
+    <Grid>
+      <DataGrid ItemsSource="{Binding Items}" AutomationProperties.Name="Quarantined items">
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Header="Select" Width="60">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Item.CanRestore}" AutomationProperties.Name="Select item" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="Operation" Binding="{Binding Item.OperationId}" Width="75" />
+          <DataGridTextColumn Header="Application" Binding="{Binding Item.AppKey}" Width="110" />
+          <DataGridTextColumn Header="Original path" Binding="{Binding Item.OriginalPath}" Width="2*" />
+          <DataGridTextColumn Header="Quarantine path" Binding="{Binding Item.QuarantinePath}" Width="*" />
+          <DataGridTextColumn Header="Size" Binding="{Binding Item.SizeBytes, Converter={StaticResource Bytes}}" Width="80" />
+          <DataGridTextColumn Header="Date" Binding="{Binding Item.CreatedAt, Converter={StaticResource LocalTime}}" Width="130" />
+          <DataGridTextColumn Header="Status" Binding="{Binding Item.Status, Converter={StaticResource Humanize}}" Width="130" />
+          <DataGridTextColumn Header="Message" Binding="{Binding Item.Message}" Width="*" />
+        </DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Text="Quarantine is empty." Style="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Visibility="{Binding Items.Count, Converter={StaticResource ZeroToVisible}}" />
+    </Grid>
+  </DockPanel>
+</UserControl>

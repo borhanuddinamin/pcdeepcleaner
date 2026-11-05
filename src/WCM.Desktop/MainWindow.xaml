@@ -3,38 +3,42 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:WCM.Desktop.ViewModels"
         xmlns:views="clr-namespace:WCM.Desktop.Views"
-        Title="Windows Cleanup Manager" Height="680" Width="1080" MinHeight="480" MinWidth="720">
+        Title="Windows Cleanup Manager" Height="760" Width="1240" MinHeight="520" MinWidth="820"
+        Background="{DynamicResource WindowBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="14" UseLayoutRounding="True">
   <Window.Resources>
-    <DataTemplate DataType="{x:Type vm:PlaceholderPageViewModel}">
-      <StackPanel>
-        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" />
-        <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedTextBrush}" />
-      </StackPanel>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:ApplicationsViewModel}">
-      <views:ApplicationsView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:StorageViewModel}">
-      <views:StorageView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-      <views:SettingsView />
-    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><views:DashboardView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ApplicationsViewModel}"><views:ApplicationsView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:OrphansViewModel}"><views:OrphansView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:CacheViewModel}"><views:CacheView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:StorageViewModel}"><views:StorageView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:CleanupCenterViewModel}"><views:CleanupCenterView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:QuarantineViewModel}"><views:QuarantineView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><views:HistoryView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
   </Window.Resources>
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="220" />
+      <ColumnDefinition Width="230" />
       <ColumnDefinition Width="*" />
     </Grid.ColumnDefinitions>
-    <ListBox ItemsSource="{Binding Pages}"
-             SelectedItem="{Binding SelectedPage}"
-             DisplayMemberPath="Title"
-             Background="{StaticResource SidebarBrush}"
-             BorderThickness="0"
-             Padding="8"
-             AutomationProperties.Name="Main navigation" />
-    <Border Grid.Column="1" Background="{StaticResource ContentBrush}" Padding="24">
-      <ContentControl Content="{Binding SelectedPage}" Focusable="False" />
+    <Border Background="{DynamicResource SidebarBrush}">
+      <DockPanel Margin="8,12">
+        <TextBlock DockPanel.Dock="Top" Text="Cleanup Manager" FontSize="16" FontWeight="SemiBold" Margin="10,4,0,14" />
+        <ListBox ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}"
+                 Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.Name="Main navigation">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" AutomationProperties.Name="{Binding Title}">
+                <TextBlock Text="{Binding Icon}" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
     </Border>
+    <ContentControl Grid.Column="1" Content="{Binding SelectedPage}" Focusable="False" Margin="24,20" />
   </Grid>
 </Window>
