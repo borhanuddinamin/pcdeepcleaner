@@ -32,6 +32,20 @@ public sealed class DataDirectoryService : IDataDirectoryService
 
     public string LogsDirectory => Path.Combine(DataRoot, "Logs");
 
+    public string DatabasePath
+    {
+        get
+        {
+            var root = Path.GetFullPath(DataRoot);
+            if (_protectedRoots.Any(protectedRoot => IsSameOrInside(root, protectedRoot)))
+            {
+                throw new InvalidDataException($"The database can't be stored in a protected folder: {root}");
+            }
+
+            return Path.Combine(root, "Data", "cleanup.db");
+        }
+    }
+
     public static DataDirectoryService CreateDefault()
     {
         var protectedRoots = new[]

@@ -4,6 +4,7 @@ using Serilog;
 using WCM.Application.Interfaces;
 using WCM.Desktop.ViewModels;
 using WCM.Infrastructure.Logging;
+using WCM.Infrastructure.SQLite;
 using WCM.Infrastructure.Windows;
 
 namespace WCM.Desktop.Composition;
@@ -20,6 +21,11 @@ public static class AppHost
         var builder = new HostApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
         builder.Logging.AddSerilog(logger, dispose: true);
         builder.Services.AddSingleton<IDataDirectoryService>(dataDirectories);
+        builder.Services.AddSingleton(new SqliteConnectionFactory(dataDirectories.DatabasePath));
+        builder.Services.AddSingleton<IDatabaseInitializer, DatabaseInitializer>();
+        builder.Services.AddSingleton<IApplicationRepository, ApplicationRepository>();
+        builder.Services.AddSingleton<IScanRepository, ScanRepository>();
+        builder.Services.AddSingleton<IAuditRepository, AuditRepository>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<MainWindowViewModel>();
         builder.Services.AddSingleton<MainWindow>();

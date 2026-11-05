@@ -48,6 +48,8 @@ public class NavigationTests
 
         public string LogsDirectory => @"C:\Data\Logs";
 
+        public string DatabasePath => @"C:\Data\Data\cleanup.db";
+
         public void SaveDataRoot(string path)
         {
             if (SaveError is not null)

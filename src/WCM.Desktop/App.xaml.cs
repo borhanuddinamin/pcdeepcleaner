@@ -3,6 +3,8 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using WCM.Application.Exceptions;
+using WCM.Application.Interfaces;
 using WCM.Desktop.Composition;
 
 namespace WCM.Desktop;
@@ -21,8 +23,9 @@ public partial class App : System.Windows.Application
         {
             _host = AppHost.Build();
             _host.Start();
+            _host.Services.GetRequiredService<IDatabaseInitializer>().Initialize();
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or DatabaseStateException)
         {
             MessageBox.Show(
                 $"Windows Cleanup Manager couldn't start.\n\n{ex.Message}",
