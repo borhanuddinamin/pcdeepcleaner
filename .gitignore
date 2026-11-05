@@ -1,0 +1,17 @@
+bin/
+obj/
+.vs/
+*.user
+TestResults/
+publish/
+# Runtime data: never commit
+/Data/
+/Logs/
+/Quarantine/
+*.db
+*.db-wal
+*.db-shm
+# Secrets
+.env
+.env.*
+appsettings.*.local.json

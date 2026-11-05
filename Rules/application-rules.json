@@ -1,0 +1,16 @@
+{
+  "catalogueVersion": "1.0",
+  "rules": [
+    {
+      "ruleId": "example-app-cache-001",
+      "ruleVersion": "1.0",
+      "applicationKey": "example-app",
+      "relativePath": "Cache",
+      "dataType": "ApplicationCache",
+      "cleanupAllowed": false,
+      "requiresApplicationClosed": true,
+      "minimumAgeDays": 7,
+      "description": "Example rule. Must be validated for the actual application."
+    }
+  ]
+}
