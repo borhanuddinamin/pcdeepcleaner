@@ -11,6 +11,9 @@
         <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedTextBrush}" />
       </StackPanel>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ApplicationsViewModel}">
+      <views:ApplicationsView />
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
       <views:SettingsView />
     </DataTemplate>

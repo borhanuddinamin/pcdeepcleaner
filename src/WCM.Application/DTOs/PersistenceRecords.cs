@@ -10,7 +10,8 @@ public sealed record ApplicationRecord(
     string DetectionSource,
     string Status,
     DateTimeOffset FirstDetectedAt,
-    DateTimeOffset LastDetectedAt);
+    DateTimeOffset LastDetectedAt,
+    string? ReviewReason = null);
 
 public sealed record ScanSessionRecord(
     long Id,

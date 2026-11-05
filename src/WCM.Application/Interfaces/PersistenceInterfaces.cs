@@ -19,6 +19,16 @@ public interface IApplicationRepository
     Task<ApplicationRecord?> GetByKeyAsync(string appKey, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<ApplicationRecord>> GetAllAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Saves inventory, source evidence and snapshots in one transaction. Applications are marked
+    /// not detected only when <paramref name="isComplete"/> is true.
+    /// </summary>
+    Task SaveInventoryAsync(
+        IReadOnlyList<MergedApplication> applications,
+        DateTimeOffset observedAt,
+        bool isComplete,
+        CancellationToken cancellationToken);
 }
 
 public interface IScanRepository

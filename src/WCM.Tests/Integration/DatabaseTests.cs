@@ -41,7 +41,7 @@ public sealed class DatabaseTests : IDisposable
                 "DeletionOperations", "AuditLogs", "AppSettings",
             },
             tables);
-        Assert.Equal(1, connection.ExecuteScalar<int>("SELECT COUNT(*) FROM SchemaMigrations"));
+        Assert.Equal(2, connection.ExecuteScalar<int>("SELECT COUNT(*) FROM SchemaMigrations"));
         Assert.Equal("wal", connection.ExecuteScalar<string>("PRAGMA journal_mode;"));
     }
 

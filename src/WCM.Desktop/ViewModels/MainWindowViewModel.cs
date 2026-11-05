@@ -6,12 +6,12 @@ public sealed class MainWindowViewModel : ObservableObject
 {
     private PageViewModel _selectedPage;
 
-    public MainWindowViewModel(SettingsViewModel settings)
+    public MainWindowViewModel(SettingsViewModel settings, ApplicationsViewModel applications)
     {
         Pages =
         [
             new PlaceholderPageViewModel("Dashboard"),
-            new PlaceholderPageViewModel("Applications"),
+            applications,
             new PlaceholderPageViewModel("Orphaned Data"),
             new PlaceholderPageViewModel("Cache Analyzer"),
             new PlaceholderPageViewModel("Storage Explorer"),

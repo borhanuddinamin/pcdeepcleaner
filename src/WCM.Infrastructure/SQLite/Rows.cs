@@ -29,6 +29,8 @@ internal sealed class ApplicationRow
     public string FirstDetectedAt { get; set; } = string.Empty;
 
     public string LastDetectedAt { get; set; } = string.Empty;
+
+    public string? ReviewReason { get; set; }
 }
 
 internal sealed class ScanSessionRow
