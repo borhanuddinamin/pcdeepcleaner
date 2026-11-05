@@ -14,4 +14,7 @@
     <ProjectReference Include="..\WCM.Application\WCM.Application.csproj" />
     <ProjectReference Include="..\WCM.Infrastructure\WCM.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\Rules\**\*" Link="Rules\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

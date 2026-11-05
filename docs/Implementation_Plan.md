@@ -7,7 +7,8 @@ WCM_Master_Plan.md section 14 defines each phase.
 - [x] Phase 2: SQLite and migrations
 - [x] Phase 3: Application discovery
 - [x] Phase 4: Storage scanning
-- [ ] Phase 5 onward: not started
+- [x] Phase 5: Mapping and ownership evidence
+- [ ] Phase 6 onward: not started
 
 ## Phase 3 notes
 
@@ -28,3 +29,14 @@ WCM_Master_Plan.md section 14 defines each phase.
 - Deferred from FR-002 and section 9.2: incremental rescans (every scan is full), allocated disk size
   (sizes are logical), and pause (cancel is supported).
 - OneDrive-style placeholder files are reparse points, so they are recorded as links with size 0.
+
+## Phase 5 notes
+
+- Candidates are folders up to two levels below a scan root, each development tool's own root, install
+  folders and signature paths. Deeper folders are covered by their parent's protection in Phase 9.
+- A publisher match counts only alongside a folder-name match, so `Microsoft` alone links to nothing.
+- Evidence weights are constants in `OwnershipScorer`. Making them user-configurable is deferred.
+- Every mapping is saved with `IsProtected = 1`. Decisions change the state and never the protection.
+- A parent of an install folder is not owned by the apps inside it, so it stays unknown and protected.
+- The launch that applies a migration runs the full database checks, which can take over 20 seconds on a
+  large database with no window showing yet. Later launches use the quick check.

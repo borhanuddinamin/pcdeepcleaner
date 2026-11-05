@@ -1,0 +1,12 @@
+{
+  "catalogueVersion": "1.0",
+  "signatures": [
+    { "signatureId": "chrome", "signatureVersion": "1.0", "nameContains": "Google Chrome", "publisherContains": "Google", "paths": ["%LOCALAPPDATA%\\Google\\Chrome"] },
+    { "signatureId": "edge", "signatureVersion": "1.0", "nameContains": "Microsoft Edge", "publisherContains": "Microsoft", "paths": ["%LOCALAPPDATA%\\Microsoft\\Edge"] },
+    { "signatureId": "firefox", "signatureVersion": "1.0", "nameContains": "Mozilla Firefox", "publisherContains": "Mozilla", "paths": ["%APPDATA%\\Mozilla\\Firefox", "%LOCALAPPDATA%\\Mozilla\\Firefox"] },
+    { "signatureId": "vscode", "signatureVersion": "1.0", "nameContains": "Visual Studio Code", "publisherContains": "Microsoft", "paths": ["%APPDATA%\\Code", "%USERPROFILE%\\.vscode"] },
+    { "signatureId": "cursor", "signatureVersion": "1.0", "nameContains": "Cursor", "paths": ["%APPDATA%\\Cursor", "%USERPROFILE%\\.cursor"] },
+    { "signatureId": "docker-desktop", "signatureVersion": "1.0", "nameContains": "Docker Desktop", "publisherContains": "Docker", "paths": ["%USERPROFILE%\\.docker", "%LOCALAPPDATA%\\Docker", "%APPDATA%\\Docker"] },
+    { "signatureId": "notepad-plus-plus", "signatureVersion": "1.0", "nameContains": "Notepad++", "paths": ["%APPDATA%\\Notepad++"] }
+  ]
+}

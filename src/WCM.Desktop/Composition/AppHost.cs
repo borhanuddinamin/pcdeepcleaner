@@ -41,6 +41,10 @@ public static class AppHost
             services.GetRequiredService<SqliteConnectionFactory>(),
             ScanDefaults.Create(dataDirectories.DataRoot)));
         builder.Services.AddSingleton<StorageViewModel>();
+        builder.Services.AddSingleton<IMappingRepository, MappingRepository>();
+        builder.Services.AddSingleton<ICandidateLocationReader, CandidateLocationReader>();
+        builder.Services.AddSingleton<ISignatureCatalog>(SignatureCatalog.CreateDefault());
+        builder.Services.AddSingleton<IOwnershipService, OwnershipService>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<MainWindowViewModel>();
         builder.Services.AddSingleton<MainWindow>();

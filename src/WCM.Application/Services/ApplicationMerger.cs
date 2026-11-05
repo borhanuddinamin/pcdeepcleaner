@@ -144,7 +144,7 @@ public static class ApplicationMerger
             && (left.Contains(right, StringComparison.Ordinal) || right.Contains(left, StringComparison.Ordinal));
     }
 
-    private static string Compact(string value)
+    internal static string Compact(string value)
     {
         var builder = new StringBuilder(value.Length);
         foreach (var character in value)
@@ -158,7 +158,7 @@ public static class ApplicationMerger
         return builder.ToString();
     }
 
-    private static string? Normalize(string? path) =>
+    internal static string? Normalize(string? path) =>
         string.IsNullOrWhiteSpace(path)
             ? null
             : Path.TrimEndingDirectorySeparator(path.Trim().Replace('/', '\\'));
@@ -180,7 +180,7 @@ public static class ApplicationMerger
     }
 
     // Folders such as Program Files hold unrelated applications, so they prove nothing.
-    private static bool IsSpecificLocation(string? location)
+    internal static bool IsSpecificLocation(string? location)
     {
         var path = Normalize(location);
         if (path is null || Path.GetPathRoot(path)?.TrimEnd('\\').Equals(path.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase) == true)

@@ -38,7 +38,7 @@ public class NavigationTests
     {
         var page = new ApplicationsViewModel(
             new FakeDiscovery(new DiscoveryResult(0, 0, false, false, ["Registry: denied"])),
-            new FakeApplications());
+            new FakeApplications(), new FakeOwnership());
 
         await page.ScanCommand.ExecuteAsync(null);
 
@@ -51,7 +51,7 @@ public class NavigationTests
     {
         var page = new ApplicationsViewModel(
             new FakeDiscovery(new DiscoveryResult(3, 3, false, true, ["Appx: denied"])),
-            new FakeApplications());
+            new FakeApplications(), new FakeOwnership());
 
         await page.ScanCommand.ExecuteAsync(null);
 
@@ -60,8 +60,19 @@ public class NavigationTests
 
     private static MainWindowViewModel Shell(FakeDirectories directories) => new(
         new SettingsViewModel(directories),
-        new ApplicationsViewModel(new FakeDiscovery(new DiscoveryResult(0, 0, true, true, [])), new FakeApplications()),
+        new ApplicationsViewModel(new FakeDiscovery(new DiscoveryResult(0, 0, true, true, [])), new FakeApplications(), new FakeOwnership()),
         new StorageViewModel(new FakeScanner(), new FakeScanSettings()));
+
+    private sealed class FakeOwnership : IOwnershipService
+    {
+        public Task<MappingResult> MapAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(new MappingResult(false, 0, 0, 0, 0, "Run a storage scan first."));
+
+        public Task<IReadOnlyList<LocationMapping>> GetLocationsAsync(string appKey, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<LocationMapping>>([]);
+
+        public Task SetDecisionAsync(long mappingId, string decision, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
 
     private sealed class FakeScanner : IStorageScanner
     {

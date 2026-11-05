@@ -6,14 +6,18 @@
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <TextBlock Text="Applications" Style="{StaticResource PageTitle}" />
     <DockPanel Grid.Row="1" Margin="0,0,0,12">
-      <Button Content="_Scan" Command="{Binding ScanCommand}" Padding="16,4" Margin="0,0,12,0" />
+      <Button Content="_Scan" Command="{Binding ScanCommand}" Padding="16,4" Margin="0,0,8,0" />
+      <Button Content="_Map storage" Command="{Binding MapCommand}" Padding="16,4" Margin="0,0,12,0" />
       <TextBlock Text="{Binding Status}" TextWrapping="Wrap" VerticalAlignment="Center"
                  AutomationProperties.LiveSetting="Polite" />
     </DockPanel>
-    <DataGrid Grid.Row="2" ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True"
+    <DataGrid Grid.Row="2" ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}"
+              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
               AutomationProperties.Name="Applications">
       <DataGrid.Columns>
@@ -24,6 +28,30 @@
         <DataGridTextColumn Header="Detected by" Binding="{Binding DetectionSource}" Width="Auto" />
         <DataGridTextColumn Header="Install location" Binding="{Binding InstallLocation}" Width="2*" />
         <DataGridTextColumn Header="Review reason" Binding="{Binding ReviewReason}" Width="*" />
+      </DataGrid.Columns>
+    </DataGrid>
+    <TextBlock Grid.Row="3" Text="Storage locations for the selected application" FontWeight="SemiBold" Margin="0,12,0,4" />
+    <DataGrid Grid.Row="4" ItemsSource="{Binding Locations}" AutoGenerateColumns="False" IsReadOnly="True"
+              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+              AutomationProperties.Name="Storage locations">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Path" Binding="{Binding Mapping.Path}" Width="2*" />
+        <DataGridTextColumn Header="Type" Binding="{Binding Mapping.DataType}" Width="Auto" />
+        <DataGridTextColumn Header="Bytes" Binding="{Binding Mapping.SizeBytes, StringFormat=N0}" Width="Auto" />
+        <DataGridTextColumn Header="Score" Binding="{Binding Mapping.Score}" Width="Auto" />
+        <DataGridTextColumn Header="Evidence level" Binding="{Binding Mapping.Band}" Width="Auto" />
+        <DataGridTextColumn Header="Why it's protected" Binding="{Binding Mapping.ProtectionReason}" Width="*" />
+        <DataGridTextColumn Header="Evidence" Binding="{Binding EvidenceText}" Width="2*" />
+        <DataGridTemplateColumn Header="Is this link right?" Width="Auto">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal">
+                <Button Content="Confirm" Command="{Binding ConfirmCommand}" Padding="8,2" Margin="0,0,4,0" />
+                <Button Content="Reject" Command="{Binding RejectCommand}" Padding="8,2" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
       </DataGrid.Columns>
     </DataGrid>
   </Grid>
