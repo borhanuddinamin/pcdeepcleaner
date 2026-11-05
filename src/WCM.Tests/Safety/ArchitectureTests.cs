@@ -11,7 +11,7 @@ public class ArchitectureTests
     [InlineData("WCM.Application", "WCM.Domain")]
     [InlineData("WCM.Infrastructure", "WCM.Application", "WCM.Domain")]
     [InlineData("WCM.CleanupEngine", "WCM.Application", "WCM.Domain")]
-    [InlineData("WCM.Desktop", "WCM.Application")]
+    [InlineData("WCM.Desktop", "WCM.Application", "WCM.Infrastructure")]
     public void Project_references_follow_the_dependency_direction(string project, params string[] expected)
     {
         var actual = ProjectFile(project).Descendants("ProjectReference")
@@ -29,6 +29,27 @@ public class ArchitectureTests
         Assert.Empty(domain.Descendants("PackageReference"));
         Assert.Empty(domain.Descendants("UseWPF"));
         Assert.Equal("net10.0", domain.Descendants("TargetFramework").Single().Value);
+    }
+
+    [Fact]
+    public void Only_the_composition_folder_uses_infrastructure_or_cleanup_engine_in_desktop()
+    {
+        var desktop = Path.Combine(RepositoryRoot.Path, "src", "WCM.Desktop");
+        var violations = Directory.EnumerateFiles(desktop, "*.cs", SearchOption.AllDirectories)
+            .Where(file =>
+            {
+                var parts = file.Split(Path.DirectorySeparatorChar);
+                return !parts.Contains("bin") && !parts.Contains("obj") && !parts.Contains("Composition");
+            })
+            .Where(file =>
+            {
+                var text = File.ReadAllText(file);
+                return text.Contains("WCM.Infrastructure", StringComparison.Ordinal)
+                    || text.Contains("WCM.CleanupEngine", StringComparison.Ordinal);
+            })
+            .ToList();
+
+        Assert.Empty(violations);
     }
 
     private static XDocument ProjectFile(string project) =>

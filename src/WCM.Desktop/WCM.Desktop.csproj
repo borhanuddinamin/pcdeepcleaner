@@ -6,6 +6,12 @@
     <AssemblyName>WindowsCleanupManager</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\WCM.Application\WCM.Application.csproj" />
+    <ProjectReference Include="..\WCM.Infrastructure\WCM.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

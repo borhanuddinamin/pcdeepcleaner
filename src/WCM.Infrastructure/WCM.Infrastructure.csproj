@@ -3,6 +3,10 @@
     <TargetFramework>net10.0-windows</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\WCM.Domain\WCM.Domain.csproj" />
     <ProjectReference Include="..\WCM.Application\WCM.Application.csproj" />
   </ItemGroup>

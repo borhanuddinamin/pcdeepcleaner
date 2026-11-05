@@ -1,0 +1,22 @@
+<UserControl x:Class="WCM.Desktop.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+  </UserControl.Resources>
+  <StackPanel MaxWidth="640" HorizontalAlignment="Left">
+    <TextBlock Text="Settings" Style="{StaticResource PageTitle}" />
+    <TextBlock Text="Welcome. Choose where WCM keeps its database, logs and quarantine, or keep the suggested folder."
+               TextWrapping="Wrap" Margin="0,0,0,16"
+               Visibility="{Binding IsFirstRun, Converter={StaticResource BoolToVisibility}}" />
+    <TextBlock Text="Running in portable mode. Data is stored beside the program."
+               TextWrapping="Wrap" Margin="0,0,0,16"
+               Visibility="{Binding IsPortable, Converter={StaticResource BoolToVisibility}}" />
+    <Label Content="_Data folder" Target="{Binding ElementName=DataRootBox}" Padding="0,0,0,4" />
+    <TextBox x:Name="DataRootBox" Text="{Binding DataRoot, UpdateSourceTrigger=PropertyChanged}"
+             IsReadOnly="{Binding IsPortable}" Padding="4" />
+    <Button Content="_Save" Command="{Binding SaveCommand}"
+            HorizontalAlignment="Left" Padding="16,4" Margin="0,12,0,12" />
+    <TextBlock Text="{Binding Status}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+  </StackPanel>
+</UserControl>
