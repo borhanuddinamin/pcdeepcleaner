@@ -20,7 +20,9 @@ public sealed record ScanSessionRecord(
     string Status,
     long FilesScanned,
     long FoldersScanned,
-    long Errors);
+    long Errors,
+    long TotalBytes = 0,
+    long LinksSkipped = 0);
 
 public sealed record ScanItemRecord(
     string Path,
@@ -28,7 +30,11 @@ public sealed record ScanItemRecord(
     long SizeBytes,
     DateTimeOffset? LastModifiedAt,
     bool IsLocked,
-    bool IsProtected);
+    bool IsProtected,
+    long ItemCount = 0,
+    int Attributes = 0,
+    DateTimeOffset? CreatedAt = null,
+    bool IsPartial = false);
 
 public sealed record AuditEntry(
     DateTimeOffset Timestamp,

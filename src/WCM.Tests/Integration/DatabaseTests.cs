@@ -41,7 +41,7 @@ public sealed class DatabaseTests : IDisposable
                 "DeletionOperations", "AuditLogs", "AppSettings",
             },
             tables);
-        Assert.Equal(2, connection.ExecuteScalar<int>("SELECT COUNT(*) FROM SchemaMigrations"));
+        Assert.Equal(3, connection.ExecuteScalar<int>("SELECT COUNT(*) FROM SchemaMigrations"));
         Assert.Equal("wal", connection.ExecuteScalar<string>("PRAGMA journal_mode;"));
     }
 
@@ -192,7 +192,7 @@ public sealed class DatabaseTests : IDisposable
             id,
             [new ScanItemRecord(@"C:\a", "File", 5_000_000_000_000, Time, false, true), new ScanItemRecord(@"C:\b", "Folder", 0, null, true, false)],
             CancellationToken.None);
-        await repository.CompleteSessionAsync(id, Time.AddMinutes(1), "Completed", 1, 1, 0, CancellationToken.None);
+        await repository.CompleteSessionAsync(id, Time.AddMinutes(1), "Completed", 1, 1, 0, 100, 2, CancellationToken.None);
 
         var session = await repository.GetSessionAsync(id, CancellationToken.None);
         Assert.NotNull(session);

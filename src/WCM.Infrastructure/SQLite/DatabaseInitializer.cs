@@ -22,10 +22,12 @@ public sealed class DatabaseInitializer(SqliteConnectionFactory connections) : I
             Directory.CreateDirectory(Path.GetDirectoryName(connections.DatabasePath)!);
             using var connection = connections.Create();
             connection.Open();
-            CheckIntegrity(connection);
+            QuickCheck(connection);
             connection.Execute("PRAGMA journal_mode = WAL;");
-            MigrationRunner.Apply(connection, _migrations);
-            CheckIntegrity(connection);
+            if (MigrationRunner.Apply(connection, _migrations))
+            {
+                FullCheck(connection);
+            }
         }
         catch (SqliteException ex)
         {
@@ -52,7 +54,16 @@ public sealed class DatabaseInitializer(SqliteConnectionFactory connections) : I
         source.BackupDatabase(destination);
     }
 
-    private void CheckIntegrity(SqliteConnection connection)
+    // Fast enough for every start. It finds file corruption, but not every index mismatch.
+    private void QuickCheck(SqliteConnection connection)
+    {
+        if (connection.Query<string>("PRAGMA quick_check(1);").ToList() is not ["ok"])
+        {
+            throw new DatabaseStateException($"The database failed its integrity check: {connections.DatabasePath}");
+        }
+    }
+
+    private void FullCheck(SqliteConnection connection)
     {
         var integrity = connection.Query<string>("PRAGMA integrity_check;").ToList();
         if (integrity is not ["ok"])

@@ -8,7 +8,11 @@ public sealed class ApplicationDiscoveryService(
     IApplicationRepository applications,
     IAuditRepository audit) : IApplicationDiscoveryService
 {
-    public async Task<DiscoveryResult> DiscoverAsync(CancellationToken cancellationToken)
+    // Task.Run keeps merging and saving off the UI thread.
+    public Task<DiscoveryResult> DiscoverAsync(CancellationToken cancellationToken) =>
+        Task.Run(() => DiscoverCoreAsync(cancellationToken), CancellationToken.None);
+
+    private async Task<DiscoveryResult> DiscoverCoreAsync(CancellationToken cancellationToken)
     {
         var records = new List<ApplicationInfo>();
         var failures = new List<string>();

@@ -26,7 +26,7 @@ public static class MigrationRunner
             .ToList();
     }
 
-    public static void Apply(SqliteConnection connection, IReadOnlyList<Migration> migrations)
+    public static bool Apply(SqliteConnection connection, IReadOnlyList<Migration> migrations)
     {
         connection.Execute(
             """
@@ -53,6 +53,7 @@ public static class MigrationRunner
             }
         }
 
+        var changed = false;
         foreach (var migration in migrations.Where(m => applied.All(row => row.Version != m.Version)))
         {
             using var transaction = connection.BeginTransaction();
@@ -68,7 +69,10 @@ public static class MigrationRunner
                 },
                 transaction);
             transaction.Commit();
+            changed = true;
         }
+
+        return changed;
     }
 
     private static Migration Load(Assembly assembly, string resourceName)

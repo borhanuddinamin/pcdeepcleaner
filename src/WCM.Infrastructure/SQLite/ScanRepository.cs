@@ -10,7 +10,10 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
     {
         await using var connection = connections.Create();
         return await connection.ExecuteScalarAsync<long>(new CommandDefinition(
-            "INSERT INTO ScanSessions (StartedAt, Status) VALUES (@startedAt, 'Running') RETURNING Id",
+            """
+            UPDATE ScanSessions SET Status = 'Interrupted' WHERE Status = 'Running';
+            INSERT INTO ScanSessions (StartedAt, Status) VALUES (@startedAt, 'Running') RETURNING Id;
+            """,
             new { startedAt = UtcTimestamp.Format(startedAt) },
             cancellationToken: cancellationToken));
     }
@@ -22,8 +25,8 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         await connection.ExecuteAsync(new CommandDefinition(
             """
-            INSERT INTO ScanItems (ScanSessionId, Path, ItemType, SizeBytes, LastModifiedAt, IsLocked, IsProtected)
-            VALUES (@SessionId, @Path, @ItemType, @SizeBytes, @LastModifiedAt, @IsLocked, @IsProtected)
+            INSERT INTO ScanItems (ScanSessionId, Path, ItemType, SizeBytes, LastModifiedAt, IsLocked, IsProtected, ItemCount, Attributes, CreatedAt, IsPartial)
+            VALUES (@SessionId, @Path, @ItemType, @SizeBytes, @LastModifiedAt, @IsLocked, @IsProtected, @ItemCount, @Attributes, @CreatedAt, @IsPartial)
             """,
             batch.Select(item => new
             {
@@ -34,7 +37,24 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
                 LastModifiedAt = UtcTimestamp.Format(item.LastModifiedAt),
                 item.IsLocked,
                 item.IsProtected,
+                item.ItemCount,
+                item.Attributes,
+                CreatedAt = UtcTimestamp.Format(item.CreatedAt),
+                item.IsPartial,
             }),
+            transaction,
+            cancellationToken: cancellationToken));
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    public async Task AddErrorsAsync(long sessionId, IEnumerable<ScanErrorRecord> errors, CancellationToken cancellationToken)
+    {
+        await using var connection = connections.Create();
+        await connection.OpenAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await connection.ExecuteAsync(new CommandDefinition(
+            "INSERT INTO ScanErrors (ScanSessionId, Path, Kind, Message) VALUES (@SessionId, @Path, @Kind, @Message)",
+            errors.Select(error => new { SessionId = sessionId, error.Path, error.Kind, error.Message }),
             transaction,
             cancellationToken: cancellationToken));
         await transaction.CommitAsync(cancellationToken);
@@ -47,6 +67,8 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
         long filesScanned,
         long foldersScanned,
         long errors,
+        long totalBytes,
+        long linksSkipped,
         CancellationToken cancellationToken)
     {
         await using var connection = connections.Create();
@@ -54,10 +76,10 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
             """
             UPDATE ScanSessions
             SET CompletedAt = @completedAt, Status = @status, FilesScanned = @filesScanned,
-                FoldersScanned = @foldersScanned, Errors = @errors
+                FoldersScanned = @foldersScanned, Errors = @errors, TotalBytes = @totalBytes, LinksSkipped = @linksSkipped
             WHERE Id = @sessionId
             """,
-            new { sessionId, completedAt = UtcTimestamp.Format(completedAt), status, filesScanned, foldersScanned, errors },
+            new { sessionId, completedAt = UtcTimestamp.Format(completedAt), status, filesScanned, foldersScanned, errors, totalBytes, linksSkipped },
             cancellationToken: cancellationToken));
     }
 
@@ -65,7 +87,7 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
     {
         await using var connection = connections.Create();
         var row = await connection.QuerySingleOrDefaultAsync<ScanSessionRow>(new CommandDefinition(
-            "SELECT Id, StartedAt, CompletedAt, Status, FilesScanned, FoldersScanned, Errors FROM ScanSessions WHERE Id = @sessionId",
+            "SELECT Id, StartedAt, CompletedAt, Status, FilesScanned, FoldersScanned, Errors, TotalBytes, LinksSkipped FROM ScanSessions WHERE Id = @sessionId",
             new { sessionId },
             cancellationToken: cancellationToken));
 
@@ -78,6 +100,21 @@ public sealed class ScanRepository(SqliteConnectionFactory connections) : IScanR
                 row.Status,
                 row.FilesScanned,
                 row.FoldersScanned,
-                row.Errors);
+                row.Errors,
+                row.TotalBytes,
+                row.LinksSkipped);
+    }
+
+    public async Task PruneItemsBeforeAsync(long sessionId, CancellationToken cancellationToken)
+    {
+        await using var connection = connections.Create();
+        await connection.ExecuteAsync(new CommandDefinition(
+            """
+            DELETE FROM ScanItems
+            WHERE ScanSessionId < @sessionId
+              AND Id NOT IN (SELECT ScanItemId FROM CleanupPlanItems)
+            """,
+            new { sessionId },
+            cancellationToken: cancellationToken));
     }
 }

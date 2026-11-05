@@ -5,6 +5,7 @@ using WCM.Application.Interfaces;
 using WCM.Application.Services;
 using WCM.Desktop.ViewModels;
 using WCM.Infrastructure.Discovery;
+using WCM.Infrastructure.FileSystem;
 using WCM.Infrastructure.Logging;
 using WCM.Infrastructure.SQLite;
 using WCM.Infrastructure.Windows;
@@ -35,6 +36,11 @@ public static class AppHost
 
         builder.Services.AddSingleton<IApplicationDiscoveryService, ApplicationDiscoveryService>();
         builder.Services.AddSingleton<ApplicationsViewModel>();
+        builder.Services.AddSingleton<IStorageScanner, StorageScanner>();
+        builder.Services.AddSingleton<IScanConfigurationStore>(services => new ScanConfigurationStore(
+            services.GetRequiredService<SqliteConnectionFactory>(),
+            ScanDefaults.Create(dataDirectories.DataRoot)));
+        builder.Services.AddSingleton<StorageViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<MainWindowViewModel>();
         builder.Services.AddSingleton<MainWindow>();

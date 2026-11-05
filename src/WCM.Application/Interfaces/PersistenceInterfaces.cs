@@ -44,9 +44,16 @@ public interface IScanRepository
         long filesScanned,
         long foldersScanned,
         long errors,
+        long totalBytes,
+        long linksSkipped,
         CancellationToken cancellationToken);
 
     Task<ScanSessionRecord?> GetSessionAsync(long sessionId, CancellationToken cancellationToken);
+
+    Task AddErrorsAsync(long sessionId, IEnumerable<ScanErrorRecord> errors, CancellationToken cancellationToken);
+
+    /// <summary>Removes item rows from older scans unless a cleanup plan refers to them. Session history stays.</summary>
+    Task PruneItemsBeforeAsync(long sessionId, CancellationToken cancellationToken);
 }
 
 /// <summary>Append-only: audit history has no update or delete operations.</summary>

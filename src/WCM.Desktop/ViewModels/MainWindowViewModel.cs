@@ -6,7 +6,7 @@ public sealed class MainWindowViewModel : ObservableObject
 {
     private PageViewModel _selectedPage;
 
-    public MainWindowViewModel(SettingsViewModel settings, ApplicationsViewModel applications)
+    public MainWindowViewModel(SettingsViewModel settings, ApplicationsViewModel applications, StorageViewModel storage)
     {
         Pages =
         [
@@ -14,7 +14,7 @@ public sealed class MainWindowViewModel : ObservableObject
             applications,
             new PlaceholderPageViewModel("Orphaned Data"),
             new PlaceholderPageViewModel("Cache Analyzer"),
-            new PlaceholderPageViewModel("Storage Explorer"),
+            storage,
             new PlaceholderPageViewModel("Cleanup Center"),
             new PlaceholderPageViewModel("Quarantine & Restore"),
             new PlaceholderPageViewModel("Scan History"),

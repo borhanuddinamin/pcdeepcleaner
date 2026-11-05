@@ -60,7 +60,22 @@ public class NavigationTests
 
     private static MainWindowViewModel Shell(FakeDirectories directories) => new(
         new SettingsViewModel(directories),
-        new ApplicationsViewModel(new FakeDiscovery(new DiscoveryResult(0, 0, true, true, [])), new FakeApplications()));
+        new ApplicationsViewModel(new FakeDiscovery(new DiscoveryResult(0, 0, true, true, [])), new FakeApplications()),
+        new StorageViewModel(new FakeScanner(), new FakeScanSettings()));
+
+    private sealed class FakeScanner : IStorageScanner
+    {
+        public Task<ScanResult> ScanAsync(ScanConfiguration configuration, IProgress<ScanProgress>? progress, CancellationToken cancellationToken) =>
+            Task.FromResult(new ScanResult(1, ScanStatus.Completed, 0, 0, 0, 0, 0, 0, 0, null));
+    }
+
+    private sealed class FakeScanSettings : IScanConfigurationStore
+    {
+        public Task<ScanConfiguration> LoadAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(new ScanConfiguration([], [], 1));
+
+        public Task SaveAsync(ScanConfiguration configuration, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
 
     private sealed class FakeDiscovery(DiscoveryResult result) : IApplicationDiscoveryService
     {

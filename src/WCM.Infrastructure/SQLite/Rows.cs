@@ -48,6 +48,10 @@ internal sealed class ScanSessionRow
     public long FoldersScanned { get; set; }
 
     public long Errors { get; set; }
+
+    public long TotalBytes { get; set; }
+
+    public long LinksSkipped { get; set; }
 }
 
 internal sealed class AuditRow
