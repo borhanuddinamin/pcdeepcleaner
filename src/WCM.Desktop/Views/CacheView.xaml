@@ -12,6 +12,12 @@
       <Border Style="{StaticResource Banner}" Margin="0,6,0,0" Visibility="{Binding Problem, Converter={StaticResource TextToVisible}}">
         <TextBlock Text="{Binding Problem}" TextWrapping="Wrap" Foreground="{DynamicResource WarningTextBrush}" AutomationProperties.LiveSetting="Assertive" />
       </Border>
+      <Border Style="{StaticResource Banner}" Margin="0,6,0,0" Visibility="{Binding NothingSelectable, Converter={StaticResource BoolToVisibility}}">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Content="Open _Settings" Command="{Binding OpenSettingsCommand}" Margin="12,0,0,0" />
+          <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource WarningTextBrush}" Text="These items can't be selected yet. Review a cleanup rule and turn it on in Settings. Protected items stay locked, even with a rule on." />
+        </DockPanel>
+      </Border>
     </StackPanel>
     <Grid>
       <DataGrid ItemsSource="{Binding Items}" AutomationProperties.Name="Cache candidates">
@@ -19,7 +25,7 @@
           <DataGridTemplateColumn Header="Select" Width="60">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate>
-                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Candidate.IsEligible}" AutomationProperties.Name="Select item" />
+                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Candidate.IsEligible}" ToolTip="{Binding Candidate.Reason}" ToolTipService.ShowOnDisabled="True" AutomationProperties.Name="Select item" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

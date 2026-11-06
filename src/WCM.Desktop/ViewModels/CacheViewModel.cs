@@ -18,9 +18,16 @@ public sealed class CacheViewModel : PageViewModel
         _analyzer = analyzer;
         _basket = basket;
         SendCommand = new RelayCommand(Send);
+        OpenSettingsCommand = new RelayCommand(() => OpenSettingsRequested?.Invoke(this, EventArgs.Empty));
     }
 
     public event EventHandler? OpenCleanupRequested;
+
+    public event EventHandler? OpenSettingsRequested;
+
+    public IRelayCommand OpenSettingsCommand { get; }
+
+    public bool NothingSelectable => _all.Count > 0 && _all.All(item => !item.Candidate.IsEligible);
 
     public IReadOnlyList<string> Filters { get; } =
         ["All", "Application cache", "Temporary files", "Updater data", "Logs and crash dumps", "Package caches", "Build caches"];
@@ -49,6 +56,7 @@ public sealed class CacheViewModel : PageViewModel
     public override Task RefreshAsync() => RunAsync(string.Empty, async () =>
     {
         _all = (await _analyzer.AnalyzeAsync(CancellationToken.None)).Select(item => new SelectableCache(item)).ToList();
+        OnPropertyChanged(nameof(NothingSelectable));
         Apply();
     });
 

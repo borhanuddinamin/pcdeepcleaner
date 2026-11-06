@@ -79,6 +79,7 @@ public sealed class MainWindowViewModel : ObservableObject
         cleanup.OpenRequested += (_, _) => SelectedPage = cleanup;
         orphans.OpenCleanupRequested += (_, _) => SelectedPage = cleanup;
         cache.OpenCleanupRequested += (_, _) => SelectedPage = cleanup;
+        cache.OpenSettingsRequested += (_, _) => SelectedPage = settings;
     }
 
     public IReadOnlyList<PageViewModel> Pages { get; }
