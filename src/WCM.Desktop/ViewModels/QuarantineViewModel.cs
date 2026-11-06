@@ -6,11 +6,9 @@ using WCM.Desktop.Services;
 
 namespace WCM.Desktop.ViewModels;
 
-public sealed class QuarantineRow(QuarantineItemView item)
+public sealed class QuarantineRow(QuarantineItemView item) : SelectableRow
 {
     public QuarantineItemView Item { get; } = item;
-
-    public bool IsSelected { get; set; }
 }
 
 public sealed class QuarantineViewModel : PageViewModel
@@ -31,6 +29,29 @@ public sealed class QuarantineViewModel : PageViewModel
         RestoreBesideCommand = new AsyncRelayCommand(() => RestoreAsync(RestoreConflictMode.KeepBoth));
         DeleteCommand = new AsyncRelayCommand(DeleteAsync);
         RecoverCommand = new AsyncRelayCommand(RecoverAsync);
+        SelectAllCommand = new RelayCommand(() => SetSelected(Items.Where(row => row.Item.CanRestore), true));
+        ClearSelectionCommand = new RelayCommand(() => SetSelected(Items, false));
+    }
+
+    public IRelayCommand SelectAllCommand { get; }
+
+    public IRelayCommand ClearSelectionCommand { get; }
+
+    public string SelectionSummary
+    {
+        get
+        {
+            var chosen = Chosen();
+            return $"{chosen.Count:N0} selected, {BytesConverter.Format(chosen.Sum(row => row.Item.SizeBytes))}";
+        }
+    }
+
+    private static void SetSelected(IEnumerable<QuarantineRow> rows, bool selected)
+    {
+        foreach (var row in rows)
+        {
+            row.IsSelected = selected;
+        }
     }
 
     public IAsyncRelayCommand RestoreCommand { get; }
@@ -64,8 +85,16 @@ public sealed class QuarantineViewModel : PageViewModel
         return old == 0 ? string.Empty : $"{old:N0} items have been in quarantine for more than {days} days. Review whether to restore or delete them.";
     }
 
-    private async Task LoadAsync() =>
+    private async Task LoadAsync()
+    {
         Items = (await _quarantine.GetItemsAsync(CancellationToken.None)).Select(item => new QuarantineRow(item)).ToList();
+        foreach (var row in Items)
+        {
+            row.PropertyChanged += (_, _) => OnPropertyChanged(nameof(SelectionSummary));
+        }
+
+        OnPropertyChanged(nameof(SelectionSummary));
+    }
 
     private List<QuarantineRow> Chosen() => Items.Where(row => row.IsSelected).ToList();
 

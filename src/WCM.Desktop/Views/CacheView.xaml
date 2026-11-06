@@ -4,7 +4,10 @@
     <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="0,4,0,12" Text="Only folders named by a local rule appear here. Nothing is selected for you, and rules stay off until you enable them in Settings." />
     <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,12">
       <Button Content="Pre_view selected" Command="{Binding SendCommand}" Style="{StaticResource PrimaryButton}" />
-      <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" Width="190" AutomationProperties.Name="Filter by category" />
+      <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" Width="190" Margin="0,0,8,0" AutomationProperties.Name="Filter by category" />
+      <Button Content="Select _all" Command="{Binding SelectAllCommand}" ToolTip="Selects the items showing under this filter. Locked items are skipped." />
+      <Button Content="_Clear" Command="{Binding ClearSelectionCommand}" />
+      <TextBlock Text="{Binding SelectionSummary}" Style="{StaticResource Muted}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
     </WrapPanel>
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
       <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />

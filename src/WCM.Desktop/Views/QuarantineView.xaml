@@ -7,6 +7,9 @@
       <Button Content="Restore _beside existing" Command="{Binding RestoreBesideCommand}" ToolTip="If the original path is taken, restores under a new name. Nothing is overwritten." />
       <Button Content="Check _interrupted" Command="{Binding RecoverCommand}" />
       <Button Content="_Delete permanently" Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" />
+      <Button Content="Select _all" Command="{Binding SelectAllCommand}" />
+      <Button Content="_Clear" Command="{Binding ClearSelectionCommand}" />
+      <TextBlock Text="{Binding SelectionSummary}" Style="{StaticResource Muted}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
     </WrapPanel>
     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
       <ProgressBar IsIndeterminate="True" Height="3" Margin="0,0,0,6" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />

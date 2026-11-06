@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using WCM.Application.DTOs;
 using WCM.Application.Interfaces;
+using WCM.Desktop.Converters;
 
 namespace WCM.Desktop.ViewModels;
 
@@ -18,7 +19,23 @@ public sealed class CacheViewModel : PageViewModel
         _analyzer = analyzer;
         _basket = basket;
         SendCommand = new RelayCommand(Send);
+        // Select all covers only the rows showing under the current filter, and never a locked row.
+        SelectAllCommand = new RelayCommand(() => SetSelected(Items.Where(item => item.Candidate.IsEligible), true));
+        ClearSelectionCommand = new RelayCommand(() => SetSelected(_all, false));
         OpenSettingsCommand = new RelayCommand(() => OpenSettingsRequested?.Invoke(this, EventArgs.Empty));
+    }
+
+    public IRelayCommand SelectAllCommand { get; }
+
+    public IRelayCommand ClearSelectionCommand { get; }
+
+    public string SelectionSummary
+    {
+        get
+        {
+            var chosen = _all.Where(item => item.IsSelected).ToList();
+            return $"{chosen.Count:N0} selected, {BytesConverter.Format(chosen.Sum(item => item.Candidate.SizeBytes))}";
+        }
     }
 
     public event EventHandler? OpenCleanupRequested;
@@ -56,11 +73,25 @@ public sealed class CacheViewModel : PageViewModel
     public override Task RefreshAsync() => RunAsync(string.Empty, async () =>
     {
         _all = (await _analyzer.AnalyzeAsync(CancellationToken.None)).Select(item => new SelectableCache(item)).ToList();
+        foreach (var row in _all)
+        {
+            row.PropertyChanged += (_, _) => OnPropertyChanged(nameof(SelectionSummary));
+        }
+
+        OnPropertyChanged(nameof(SelectionSummary));
         OnPropertyChanged(nameof(NothingSelectable));
         Apply();
     });
 
     private void Apply() => Items = _all.Where(item => _filter == "All" || item.Candidate.Category == _filter).ToList();
+
+    private static void SetSelected(IEnumerable<SelectableCache> rows, bool selected)
+    {
+        foreach (var row in rows)
+        {
+            row.IsSelected = selected;
+        }
+    }
 
     private void Send()
     {
